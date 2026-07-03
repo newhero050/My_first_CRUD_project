@@ -1,8 +1,9 @@
-from fastapi import FastAPI, status, Body
+from fastapi import FastAPI, status, Body, Request
 from pydantic import BaseModel, Field
 from typing import List
 from fastapi import HTTPException
-
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
 class Message(BaseModel):
     id: int = None
@@ -21,14 +22,14 @@ class Message(BaseModel):
 
 
 app = FastAPI()
+templates = Jinja2Templates(directory="templates")
 
 
 messages_db = []
 
-
 @app.get("/")
-async def get_all_messages() -> List[Message]:
-    return messages_db
+async def get_all_messages(request: Request) -> HTMLResponse:
+    return templates.TemplateResponse("message.html", {request: request})
 
 
 @app.get("/message/{message_id}")
