@@ -1,22 +1,76 @@
-from fastapi import FastAPI, Depends, Query
-from pydantic import BaseModel
-from starlette import status
+from fastapi import FastAPI, status, Body, Request, Form
+from pydantic import BaseModel, Field
+from typing import List
+from fastapi import HTTPException
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
-app = FastAPI()
-
-class Post(BaseModel):
-    id: int
+class Message(BaseModel):
+    id: int = None
     text: str
 
-db =[]
+    model_config = {
+        "json_schema_extra": {
+            "examples":
+                [
+                    {
+                        "text": "Simple message",
+                    }
+                ]
+        }
+    }
 
-async def pagination_func(limit: int = Query(10, ge=0), page: int = 1):
-    return [{'limit': limit, 'page': page}]
 
-@app.get('/messages')
-async def all_messages(pagination: dict = Depends(pagination_func)):
-    return {'messages': pagination}
+app = FastAPI()
+templates = Jinja2Templates(directory="templates")
 
-@app.get('/comments')
-async def all_comments(pagination: dict = Depends(pagination_func)):
-    return {'comments': pagination}
+
+messages_db = []
+
+
+@app.get("/")
+def get_all_messages(request: Request) -> HTMLResponse:
+    return templates.TemplateResponse("message.html", {"request": request, "messages": messages_db})
+
+
+@app.get(path="/message/{message_id}")
+def get_message(request: Request, message_id: int) -> HTMLResponse:
+    try:
+        return templates.TemplateResponse("message.html", {"request": request, "message": messages_db[message_id]})
+    except IndexError:
+        raise HTTPException(status_code=404, detail="Message not found")
+
+
+@app.post("/", status_code=status.HTTP_201_CREATED)
+async def create_message(request: Request, message: str = Form()) ->  HTMLResponse:
+    if len(messages_db) == 0:
+        max_id_message = 0
+    else:
+        max_id_message = max([i.dict()['id'] for i in messages_db]) + 1
+    messages_db.append(Message(id=max_id_message, text=message))
+    return templates.TemplateResponse("message.html", {"request": request, "messages": messages_db})
+
+
+@app.put("/message/{message_id}")
+async def update_message(message_id: int, message: str = Body()) -> HTMLResponse:
+    try:
+        edit_message = messages_db[message_id]
+        edit_message.text = message
+        return f"Message updated!"
+    except IndexError:
+        raise HTTPException(status_code=404, detail='Message not found')
+
+
+@app.delete("/message/{message_id}")
+async def delete_message(message_id: int) -> str:
+    try:
+        messages_db.pop(message_id)
+        return f"Message ID={message_id} deleted!"
+    except IndexError:
+        raise HTTPException(status_code=404, detail='Message not found')
+
+
+@app.delete("/")
+async def kill_message_all() -> str:
+    messages_db.clear()
+    return "All messages deleted!"
