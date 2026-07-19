@@ -1,9 +1,7 @@
-from idlelib.format import FormatRegion
-
 from app.backend.db import Base
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
-from app.models import *
+
 
 class Category(Base):
     __tablename__ = 'categories'
@@ -15,4 +13,5 @@ class Category(Base):
     parent_id = Column(Integer, ForeignKey('categories.id'), nullable=True)
 
     products = relationship("Product", back_populates="category")
+
 
