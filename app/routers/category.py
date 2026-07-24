@@ -29,11 +29,6 @@ async def get_all_categories(db: Annotated[Session, Depends(get_db)]):
     return categories
 
 
-@router.get('/create')
-async def create_category():
-    pass
-
-
 @router.put('/update_category')
 async def update_category(db: Annotated[Session, Depends(get_db)], category_id: int,
                           update_category: CreateCategory):
@@ -52,6 +47,7 @@ async def update_category(db: Annotated[Session, Depends(get_db)], category_id: 
         'status_code': status.HTTP_200_OK,
         'transaction': 'Category update is successful'
     }
+
 
 @router.delete('/delete')
 async def delete_category(db: Annotated[Session, Depends(get_db)], category_id: int):
