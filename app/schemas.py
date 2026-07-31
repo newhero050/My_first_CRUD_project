@@ -18,3 +18,7 @@ class CreateUser(BaseModel):
     username: str
     email: str
     password: str
+
+class CreateReview(BaseModel):
+    comment: str
+    grade: int = Field(ge=1, le=5, description="Оценка от 1 до 5")

@@ -1,5 +1,3 @@
-from concurrent.interpreters import get_current
-
 from fastapi import APIRouter, status, HTTPException, Depends
 from sqlalchemy import select, insert
 
@@ -79,10 +77,10 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get('sub')
-        user_id: str = payload.get('id')
-        is_admin: str = payload.get('is_admin')
-        is_supplier: str = payload.get('is_supplier')
-        is_customer: str = payload.get('is_customer')
+        user_id: int = payload.get('id')
+        is_admin: bool = payload.get('is_admin')
+        is_supplier: bool = payload.get('is_supplier')
+        is_customer: bool = payload.get('is_customer')
         expire = payload.get('exp')
 
         if username is None or user_id is None:

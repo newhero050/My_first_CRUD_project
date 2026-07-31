@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Commerce API Tester</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0f0f1a;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #16213e;
+            --bg-input: #0f3460;
+            --accent: #e94560;
+            --accent-hover: #ff6b81;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --error: #e74c3c;
+            --text-primary: #ecf0f1;
+            --text-secondary: #95a5a6;
+            --border: #2c3e5040;
+            --shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card));
+            padding: 20px 32px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header .subtitle {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .auth-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--error);
+            transition: background 0.3s;
+        }
+
+        .status-dot.active {
+            background: var(--success);
+            box-shadow: 0 0 8px var(--success);
+        }
+
+        .btn-logout {
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Layout */
+        .container {
+            display: flex;
+            min-height: calc(100vh - 70px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 220px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            padding: 16px 0;
+            flex-shrink: 0;
+        }
+
+        .sidebar-section {
+            margin-bottom: 8px;
+        }
+
+        .sidebar-section-title {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-secondary);
+            padding: 8px 20px;
+        }
+
+        .sidebar-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 10px 20px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .sidebar-btn:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+
+        .sidebar-btn.active {
+            background: linear-gradient(90deg, var(--accent)15, transparent);
+            color: var(--text-primary);
+            border-left: 3px solid var(--accent);
+        }
+
+        .sidebar-btn .method {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 5px;
+            border-radius: 3px;
+            min-width: 36px;
+            text-align: center;
+        }
+
+        .method-get { background: #2ecc7130; color: #2ecc71; }
+        .method-post { background: #3498db30; color: #3498db; }
+        .method-put { background: #f39c1230; color: #f39c12; }
+        .method-delete { background: #e74c3c30; color: #e74c3c; }
+        .method-patch { background: #9b59b630; color: #9b59b6; }
+
+        /* Main content */
+        .main {
+            flex: 1;
+            padding: 28px;
+            display: flex;
+            gap: 24px;
+        }
+
+        .panel {
+            flex: 1;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-body {
+            padding: 20px;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            transition: border-color 0.2s;
+            outline: none;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: var(--accent);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .btn-send {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--accent), #c0392b);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 8px;
+        }
+
+        .btn-send:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
+        }
+
+        .btn-send:active {
+            transform: translateY(0);
+        }
+
+        .btn-send.loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* Response panel */
+        .response-panel .panel-header {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .response-status {
+            font-size: 12px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .response-status.success { background: #2ecc7120; color: #2ecc71; }
+        .response-status.error { background: #e74c3c20; color: #e74c3c; }
+        .response-status.warning { background: #f39c1220; color: #f39c12; }
+
+        .response-body {
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 500px;
+            overflow-y: auto;
+            color: #a8e6cf;
+            min-height: 100px;
+        }
+
+        .response-body:empty::before {
+            content: "Ответ сервера появится здесь...";
+            color: var(--text-secondary);
+            font-family: 'Inter', sans-serif;
+            font-style: italic;
+        }
+
+        .response-time {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        /* Endpoint info */
+        .endpoint-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            background: var(--bg-card);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .endpoint-method {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+
+        /* Lock icon for protected endpoints */
+        .lock-badge {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: #f39c1220;
+            color: #f39c12;
+            margin-left: auto;
+        }
+
+        /* Hidden panels */
+        .endpoint-panel {
+            display: none;
+        }
+
+        .endpoint-panel.active {
+            display: block;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            z-index: 1000;
+            animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s;
+            animation-fill-mode: forwards;
+        }
+
+        .toast.success { background: var(--success); color: white; }
+        .toast.error { background: var(--error); color: white; }
+
+        @keyframes slideIn {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        /* Base URL config */
+        .base-url-bar {
+            padding: 8px 20px;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+        }
+
+        .base-url-bar label {
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .base-url-bar input {
+            flex: 1;
+            padding: 6px 10px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div>
+        <h1>🛒 E-Commerce API Tester</h1>
+        <div class="subtitle">Панель тестирования FastAPI эндпоинтов</div>
+    </div>
+    <div class="auth-status">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusText">Не авторизован</span>
+        <button class="btn-logout" id="btnLogout" style="display:none" onclick="logout()">Выйти</button>
+    </div>
+</div>
+
+<div class="base-url-bar">
+    <label>🌐 Base URL:</label>
+    <input type="text" id="baseUrl" value="http://127.0.0.1:8000" />
+</div>
+
+<div class="container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">🔐 Авторизация</div>
+            <button class="sidebar-btn active" onclick="showPanel('register', this)">
+                <span class="method method-post">POST</span> Регистрация
+            </button>
+            <button class="sidebar-btn" onclick="showPanel('login', this)">
+                <span class="method method-post">POST</span> Вход
+            </button>
+            <button class="sidebar-btn" onclick="showPanel('me', this)">
+                <span class="method method-get">GET</span> Мой профиль
+            </button>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">📁 Категории</div>
+            <button class="sidebar-btn" onclick="showPanel('cat-all', this)">
+                <span class="method method-get">GET</span> Все категории
+            </button>
+            <button class="sidebar-btn" onclick="showPanel('cat-create', this)">
+                <span class="method method-post">POST</span> Создать
+            </button>
+            <button class="sidebar-btn" onclick="showPanel('cat-update', this)">
+                <span class="method method-put">PUT</span> Изменить
+            </button>
+            <button class="sidebar-btn" onclick="showPanel('cat-delete', this)">
+                <span class="method method-delete">DEL</span> Удалить
+            </button>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">📦 Товары</div>
+            <button class="sidebar-btn" onclick="showPanel('prod-all', this)">
+                <span class="method method-get">GET</span> Все товары
+            </button>
+            <button class="sidebar-btn" onclick="showPanel('prod-create', this)">
+                <span class="method method-post">POST</span> Создать
+            </button>
+            <button class="sidebar-btn" onclick="showPanel('prod-by-cat', this)">
+                <span class="method method-get">GET</span> По категории
+            </button>
+            <button class="sidebar-btn" onclick="showPanel('prod-detail', this)">
+                <span class="method method-get">GET</span> Детали
+            </button>
+            <button class="sidebar-btn" onclick="showPanel('prod-update', this)">
+                <span class="method method-put">PUT</span> Изменить
+            </button>
+            <button class="sidebar-btn" onclick="showPanel('prod-delete', this)">
+                <span class="method method-delete">DEL</span> Удалить
+            </button>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">⭐ Отзывы</div>
+            <button class="sidebar-btn" onclick="showPanel('rev-all', this)">
+                <span class="method method-get">GET</span> Все отзывы
+            </button>
+            <button class="sidebar-btn" onclick="showPanel('rev-by-prod', this)">
+                <span class="method method-get">GET</span> По товару
+            </button>
+            <button class="sidebar-btn" onclick="showPanel('rev-create', this)">
+                <span class="method method-post">POST</span> Добавить
+            </button>
+            <button class="sidebar-btn" onclick="showPanel('rev-delete', this)">
+                <span class="method method-delete">DEL</span> Удалить
+            </button>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">👑 Админ</div>
+            <button class="sidebar-btn" onclick="showPanel('perm-toggle', this)">
+                <span class="method method-patch">PATCH</span> Роль юзера
+            </button>
+            <button class="sidebar-btn" onclick="showPanel('perm-delete', this)">
+                <span class="method method-delete">DEL</span> Удалить юзера
+            </button>
+        </div>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+        <!-- Request panel -->
+        <div class="panel" style="flex: 1.2;">
+            <div class="panel-header">📤 Запрос</div>
+            <div class="panel-body">
+
+                <!-- REGISTER -->
+                <div class="endpoint-panel active" id="panel-register">
+                    <div class="endpoint-info">
+                        <span class="endpoint-method method-post">POST</span>
+                        /auth/
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Имя</label>
+                            <input type="text" id="reg-first" placeholder="Иван">
+                        </div>
+                        <div class="form-group">
+                            <label>Фамилия</label>
+                            <input type="text" id="reg-last" placeholder="Иванов">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" id="reg-username" placeholder="ivan123">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="reg-email" placeholder="ivan@mail.ru">
+                    </div>
+                    <div class="form-group">
+                        <label>Пароль</label>
+                        <input type="password" id="reg-password" placeholder="Минимум 6 символов">
+                    </div>
+                    <button class="btn-send" onclick="registerUser()">Зарегистрироваться</button>
+                </div>
+
+                <!-- LOGIN -->
+                <div class="endpoint-panel" id="panel-login">
+                    <div class="endpoint-info">
+                        <span class="endpoint-method method-post">POST</span>
+                        /auth/token
+                    </div>
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" id="login-username" placeholder="ivan123">
+                    </div>
+                    <div class="form-group">
+                        <label>Пароль</label>
+                        <input type="password" id="login-password" placeholder="Ваш пароль">
+                    </div>
+                    <button class="btn-send" onclick="loginUser()">Войти и получить токен</button>
+                </div>
+
+                <!-- ME -->
+                <div class="endpoint-panel" id="panel-me">
+                    <div class="endpoint-info">
+                        <span class="endpoint-method method-get">GET</span>
+                        /auth/read_current_user
+                        <span class="lock-badge">🔒 Нужен токен</span>
+                    </div>
+                    <button class="btn-send" onclick="getMe()">Показать мой профиль</button>
+                </div>
+
+                <!-- CATEGORIES -->
+                <div class="endpoint-panel" id="panel-cat-all">
+                    <div class="endpoint-info">
+                        <span class="endpoint-method method-get">GET</span>
+                        /category/all_categories
+                    </div>
+                    <button class="btn-send" onclick="getAllCategories()">Загрузить все категории</button>
+                </div>
+
+                <div class="endpoint-panel" id="panel-cat-create">
+                    <div class="endpoint-info">
+                        <span class="endpoint-method method-post">POST</span>
+                        /category/create
+                        <span class="lock-badge">🔒 Только админ</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Название категории</label>
+                        <input type="text" id="cat-name" placeholder="Электроника">
+                    </div>
+                    <div class="form-group">
+                        <label>ID родительской категории (необязательно)</label>
+                        <input type="number" id="cat-parent" placeholder="Пусто = корневая категория">
+                    </div>
+                    <button class="btn-send" onclick="createCategory()">Создать категорию</button>
+                </div>
+
+                <div class="endpoint-panel" id="panel-cat-update">
+                    <div class="endpoint-info">
+                        <span class="endpoint-method method-put">PUT</span>
+                        /category/update_category?category_id=
+                        <span class="lock-badge">🔒 Только админ</span>
+                    </div>
+                    <div class="form-group">
+                        <label>ID категории для обновления</label>
+                        <input type="number" id="cat-upd-id" placeholder="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Новое название</label>
+                        <input type="text" id="cat-upd-name" placeholder="Смартфоны">
+                    </div>
+                    <div class="form-group">
+                        <label>Новый parent_id (необязательно)</label>
+                        <input type="number" id="cat-upd-parent" placeholder="">
+                    </div>
+                    <button class="btn-send" onclick="updateCategory()">Обновить категорию</button>
+                </div>
+
+                <div class="endpoint-panel" id="panel-cat-delete">
+                    <div class="endpoint-info">
+                        <span class="endpoint-method method-delete">DELETE</span>
+                        /category/delete?category_id=
+                        <span class="lock-badge">🔒 Только админ</span>
+                    </div>
+                    <div class="form-group">
+                        <label>ID категории для удаления</label>
+                        <input type="number" id="cat-del-id" placeholder="1">
+                    </div>
+                    <button class="btn-send" onclick="deleteCategory()">Удалить категорию</button>
+                </div>
+
+                <!-- PRODUCTS -->
+                <div class="endpoint-panel" id="panel-prod-all">
+                    <div class="endpoint-info">
+                        <span class="endpoint-method method-get">GET</span>
+                        /products/
+                    </div>
+                    <button class="btn-send" onclick="getAllProducts()">Загрузить все товары</button>
+                </div>
+
+                <div class="endpoint-panel" id="panel-prod-create">
+                    <div class="endpoint-info">
+                        <span class="endpoint-method method-post">POST</span>
+                        /products/create
+                        <span class="lock-badge">🔒 Поставщик / Админ</span>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Название</label>
+                            <input type="text" id="prod-name" placeholder="iPhone 15">
+                        </div>
+                        <div class="form-group">
+                            <label>Цена</label>
+                            <input type="number" id="prod-price" placeholder="99990">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Описание</label>
+                        <textarea id="prod-desc" placeholder="Отличный смартфон..."></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>URL изображения</label>
+                            <input type="text" id="prod-image" placeholder="https://example.com/img.jpg">
+                        </div>
+                        <div class="form-group">
+                            <label>Остаток</label>
+                            <input type="number" id="prod-stock" placeholder="100">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>ID категории</label>
+                        <input type="number" id="prod-cat" placeholder="1">
+                    </div>
+                    <button class="btn-send" onclick="createProduct()">Создать товар</button>
+                </div>
+
+                <div class="endpoint-panel" id="panel-prod-by-cat">
+                    <div class="endpoint-info">
+                        <span class="endpoint-method method-get">GET</span>
+                        /products/{category_slug}
+                    </div>
+                    <div class="form-group">
+                        <label>Slug категории</label>
+                        <input type="text" id="prod-cat-slug" placeholder="elektronika">
+                    </div>
+                    <button class="btn-send" onclick="getProductsByCategory()">Найти товары</button>
+                </div>
+
+                <div class="endpoint-panel" id="panel-prod-detail">
+                    <div class="endpoint-info">
+                        <span class="endpoint-method method-get">GET</span>
+                        /products/detail/{product_slug}
+                    </div>
+                    <div class="form-group">
+                        <label>Slug товара</label>
+                        <input type="text" id="prod-detail-slug" placeholder="iphone-15">
+                    </div>
+                    <button class="btn-send" onclick="getProductDetail()">Показать детали</button>
+                </div>
+
+                <div class="endpoint-panel" id="panel-prod-update">
+                    <div class="endpoint-info">
+                        <span class="endpoint-method method-put">PUT</span>
+                        /products/detail/{product_slug}
+                        <span class="lock-badge">🔒 Поставщик / Админ</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Slug товара для обновления</label>
+                        <input type="text" id="prod-upd-slug" placeholder="iphone-15">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Новое название</label>
+                            <input type="text" id="prod-upd-name" placeholder="iPhone 16">
+                        </div>
+                        <div class="form-group">
+                            <label>Новая цена</label>
+                            <input type="number" id="prod-upd-price" placeholder="109990">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Новое описание</label>
+                        <textarea id="prod-upd-desc" placeholder="Обновлённый смартфон..."></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>URL изображения</label>
+                            <input type="text" id="prod-upd-image" placeholder="https://example.com/img.jpg">
+                        </div>
+                        <div class="form-group">
+                            <label>Остаток</label>
+                            <input type="number" id="prod-upd-stock" placeholder="50">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>ID категории</label>
+                        <input type="number" id="prod-upd-cat" placeholder="1">
+                    </div>
+                    <button class="btn-send" onclick="updateProduct()">Обновить товар</button>
+                </div>
+
+                <div class="endpoint-panel" id="panel-prod-delete">
+                    <div class="endpoint-info">
+                        <span class="endpoint-method method-delete">DELETE</span>
+                        /products/delete?product_id=
+                        <span class="lock-badge">🔒 Поставщик / Админ</span>
+                    </div>
+                    <div class="form-group">
+                        <label>ID товара</label>
+                        <input type="number" id="prod-del-id" placeholder="1">
+                    </div>
+                    <button class="btn-send" onclick="deleteProduct()">Удалить товар</button>
+                </div>
+
+                <!-- REVIEWS -->
+                <div class="endpoint-panel" id="panel-rev-all">
+                    <div class="endpoint-info">
+                        <span class="endpoint-method method-get">GET</span>
+                        /review/
+                    </div>
+                    <button class="btn-send" onclick="getAllReviews()">Загрузить все отзывы</button>
+                </div>
+
+                <div class="endpoint-panel" id="panel-rev-by-prod">
+                    <div class="endpoint-info">
+                        <span class="endpoint-method method-get">GET</span>
+                        /review/{product_id}
+                    </div>
+                    <div class="form-group">
+                        <label>ID товара</label>
+                        <input type="number" id="rev-prod-id" placeholder="1">
+                    </div>
+                    <button class="btn-send" onclick="getReviewsByProduct()">Показать отзывы</button>
+                </div>
+
+                <div class="endpoint-panel" id="panel-rev-create">
+                    <div class="endpoint-info">
+                        <span class="endpoint-method method-post">POST</span>
+                        /review/add_review/{product_id}
+                        <span class="lock-badge">🔒 Нужен токен</span>
+                    </div>
+                    <div class="form-group">
+                        <label>ID товара</label>
+                        <input type="number" id="rev-create-prod" placeholder="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Оценка (1-5)</label>
+                        <select id="rev-grade">
+                            <option value="5">⭐⭐⭐⭐⭐ (5)</option>
+                            <option value="4">⭐⭐⭐⭐ (4)</option>
+                            <option value="3">⭐⭐⭐ (3)</option>
+                            <option value="2">⭐⭐ (2)</option>
+                            <option value="1">⭐ (1)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Текст отзыва</label>
+                        <textarea id="rev-comment" placeholder="Отличный товар! Рекомендую..."></textarea>
+                    </div>
+                    <button class="btn-send" onclick="createReview()">Отправить отзыв</button>
+                </div>
+
+                <div class="endpoint-panel" id="panel-rev-delete">
+                    <div class="endpoint-info">
+                        <span class="endpoint-method method-delete">DELETE</span>
+                        /review/delete_reviews/{review_id}
+                        <span class="lock-badge">🔒 Только админ</span>
+                    </div>
+                    <div class="form-group">
+                        <label>ID отзыва</label>
+                        <input type="number" id="rev-del-id" placeholder="1">
+                    </div>
+                    <button class="btn-send" onclick="deleteReview()">Удалить отзыв</button>
+                </div>
+
+                <!-- PERMISSIONS -->
+                <div class="endpoint-panel" id="panel-perm-toggle">
+                    <div class="endpoint-info">
+                        <span class="endpoint-method method-patch">PATCH</span>
+                        /permission/?user_id=
+                        <span class="lock-badge">🔒 Только админ</span>
+                    </div>
+                    <div class="form-group">
+                        <label>ID пользователя</label>
+                        <input type="number" id="perm-user-id" placeholder="2">
+                    </div>
+                    <button class="btn-send" onclick="togglePermission()">Переключить роль поставщика</button>
+                </div>
+
+                <div class="endpoint-panel" id="panel-perm-delete">
+                    <div class="endpoint-info">
+                        <span class="endpoint-method method-delete">DELETE</span>
+                        /permission/delete?user_id=
+                        <span class="lock-badge">🔒 Только админ</span>
+                    </div>
+                    <div class="form-group">
+                        <label>ID пользователя</label>
+                        <input type="number" id="perm-del-id" placeholder="2">
+                    </div>
+                    <button class="btn-send" onclick="deleteUser()">Удалить / Восстановить пользователя</button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Response panel -->
+        <div class="panel response-panel" style="flex: 1;">
+            <div class="panel-header">
+                📥 Ответ сервера
+                <span class="response-status" id="responseStatus" style="display:none"></span>
+            </div>
+            <div class="panel-body">
+                <div class="response-body" id="responseBody"></div>
+                <div class="response-time" id="responseTime"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // === State ===
+    let token = localStorage.getItem('jwt_token') || null;
+    updateAuthUI();
+
+    // === UI Helpers ===
+    function showPanel(id, btn) {
+        document.querySelectorAll('.endpoint-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('panel-' + id).classList.add('active');
+        if (btn) btn.classList.add('active');
+    }
+
+    function updateAuthUI() {
+        const dot = document.getElementById('statusDot');
+        const text = document.getElementById('statusText');
+        const btn = document.getElementById('btnLogout');
+        if (token) {
+            dot.classList.add('active');
+            // Decode JWT to show username
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                text.textContent = `${payload.sub} ${payload.is_admin ? '(админ)' : payload.is_supplier ? '(поставщик)' : '(покупатель)'}`;
+            } catch { text.textContent = 'Авторизован'; }
+            btn.style.display = 'inline-block';
+        } else {
+            dot.classList.remove('active');
+            text.textContent = 'Не авторизован';
+            btn.style.display = 'none';
+        }
+    }
+
+    function logout() {
+        token = null;
+        localStorage.removeItem('jwt_token');
+        updateAuthUI();
+        showToast('Вы вышли из системы', 'success');
+    }
+
+    function showToast(msg, type) {
+        const t = document.createElement('div');
+        t.className = `toast ${type}`;
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 3000);
+    }
+
+    function getBase() {
+        return document.getElementById('baseUrl').value.replace(/\/+$/, '');
+    }
+
+    // === API Request Helper ===
+    async function apiRequest(method, path, body = null, useForm = false) {
+        const url = getBase() + path;
+        const headers = {};
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        let options = { method, headers };
+
+        if (body && useForm) {
+            const formData = new URLSearchParams();
+            for (const [k, v] of Object.entries(body)) formData.append(k, v);
+            options.body = formData;
+            headers['Content-Type'] = 'application/x-www-form-urlencoded';
+        } else if (body) {
+            options.body = JSON.stringify(body);
+            headers['Content-Type'] = 'application/json';
+        }
+
+        const responseBody = document.getElementById('responseBody');
+        const responseStatus = document.getElementById('responseStatus');
+        const responseTime = document.getElementById('responseTime');
+
+        responseBody.textContent = '⏳ Загрузка...';
+        responseStatus.style.display = 'none';
+        responseTime.textContent = '';
+
+        const start = performance.now();
+
+        try {
+            const res = await fetch(url, options);
+            const elapsed = Math.round(performance.now() - start);
+            let data;
+            try { data = await res.json(); } catch { data = await res.text(); }
+
+            responseBody.textContent = JSON.stringify(data, null, 2);
+            responseStatus.style.display = 'inline-block';
+            responseStatus.textContent = `${res.status} ${res.statusText}`;
+            responseStatus.className = 'response-status ' + (res.ok ? 'success' : res.status >= 500 ? 'error' : 'warning');
+            responseTime.textContent = `⏱ ${elapsed} мс  •  ${method.toUpperCase()} ${path}`;
+
+            return { ok: res.ok, status: res.status, data };
+        } catch (e) {
+            responseBody.textContent = `❌ Ошибка соединения:\n${e.message}\n\nУбедитесь, что сервер запущен:\nuvicorn app.main:app --reload`;
+            responseStatus.style.display = 'inline-block';
+            responseStatus.textContent = 'Ошибка сети';
+            responseStatus.className = 'response-status error';
+            responseTime.textContent = '';
+            return { ok: false, data: null };
+        }
+    }
+
+    // === AUTH ===
+    async function registerUser() {
+        const body = {
+            first_name: document.getElementById('reg-first').value,
+            last_name: document.getElementById('reg-last').value,
+            username: document.getElementById('reg-username').value,
+            email: document.getElementById('reg-email').value,
+            password: document.getElementById('reg-password').value
+        };
+        const res = await apiRequest('POST', '/auth/', body);
+        if (res.ok) showToast('Регистрация успешна! Теперь войдите.', 'success');
+    }
+
+    async function loginUser() {
+        const body = {
+            username: document.getElementById('login-username').value,
+            password: document.getElementById('login-password').value
+        };
+        const res = await apiRequest('POST', '/auth/token', body, true);
+        if (res.ok && res.data.access_token) {
+            token = res.data.access_token;
+            localStorage.setItem('jwt_token', token);
+            updateAuthUI();
+            showToast('Вы успешно вошли!', 'success');
+        }
+    }
+
+    async function getMe() {
+        await apiRequest('GET', '/auth/read_current_user');
+    }
+
+    // === CATEGORIES ===
+    async function getAllCategories() {
+        await apiRequest('GET', '/category/all_categories');
+    }
+
+    async function createCategory() {
+        const parentVal = document.getElementById('cat-parent').value;
+        const body = {
+            name: document.getElementById('cat-name').value,
+            parent_id: parentVal ? parseInt(parentVal) : null
+        };
+        const res = await apiRequest('POST', '/category/create', body);
+        if (res.ok) showToast('Категория создана!', 'success');
+    }
+
+    async function updateCategory() {
+        const id = document.getElementById('cat-upd-id').value;
+        const parentVal = document.getElementById('cat-upd-parent').value;
+        const body = {
+            name: document.getElementById('cat-upd-name').value,
+            parent_id: parentVal ? parseInt(parentVal) : null
+        };
+        const res = await apiRequest('PUT', `/category/update_category?category_id=${id}`, body);
+        if (res.ok) showToast('Категория обновлена!', 'success');
+    }
+
+    async function deleteCategory() {
+        const id = document.getElementById('cat-del-id').value;
+        const res = await apiRequest('DELETE', `/category/delete?category_id=${id}`);
+        if (res.ok) showToast('Категория удалена!', 'success');
+    }
+
+    // === PRODUCTS ===
+    async function getAllProducts() {
+        await apiRequest('GET', '/products/');
+    }
+
+    async function createProduct() {
+        const body = {
+            name: document.getElementById('prod-name').value,
+            description: document.getElementById('prod-desc').value,
+            price: parseInt(document.getElementById('prod-price').value),
+            image_url: document.getElementById('prod-image').value,
+            stock: parseInt(document.getElementById('prod-stock').value),
+            category: parseInt(document.getElementById('prod-cat').value)
+        };
+        const res = await apiRequest('POST', '/products/create', body);
+        if (res.ok) showToast('Товар создан!', 'success');
+    }
+
+    async function getProductsByCategory() {
+        const slug = document.getElementById('prod-cat-slug').value;
+        await apiRequest('GET', `/products/${slug}`);
+    }
+
+    async function getProductDetail() {
+        const slug = document.getElementById('prod-detail-slug').value;
+        await apiRequest('GET', `/products/detail/${slug}`);
+    }
+
+    async function updateProduct() {
+        const slug = document.getElementById('prod-upd-slug').value;
+        const body = {
+            name: document.getElementById('prod-upd-name').value,
+            description: document.getElementById('prod-upd-desc').value,
+            price: parseInt(document.getElementById('prod-upd-price').value),
+            image_url: document.getElementById('prod-upd-image').value,
+            stock: parseInt(document.getElementById('prod-upd-stock').value),
+            category: parseInt(document.getElementById('prod-upd-cat').value)
+        };
+        const res = await apiRequest('PUT', `/products/detail/${slug}`, body);
+        if (res.ok) showToast('Товар обновлён!', 'success');
+    }
+
+    async function deleteProduct() {
+        const id = document.getElementById('prod-del-id').value;
+        const res = await apiRequest('DELETE', `/products/delete?product_id=${id}`);
+        if (res.ok) showToast('Товар удалён!', 'success');
+    }
+
+    // === REVIEWS ===
+    async function getAllReviews() {
+        await apiRequest('GET', '/review/');
+    }
+
+    async function getReviewsByProduct() {
+        const id = document.getElementById('rev-prod-id').value;
+        await apiRequest('GET', `/review/${id}`);
+    }
+
+    async function createReview() {
+        const prodId = document.getElementById('rev-create-prod').value;
+        const body = {
+            grade: parseInt(document.getElementById('rev-grade').value),
+            comment: document.getElementById('rev-comment').value
+        };
+        const res = await apiRequest('POST', `/review/add_review/${prodId}`, body);
+        if (res.ok) showToast('Отзыв добавлен!', 'success');
+    }
+
+    async function deleteReview() {
+        const id = document.getElementById('rev-del-id').value;
+        const res = await apiRequest('DELETE', `/review/delete_reviews/${id}`);
+        if (res.ok) showToast('Отзыв удалён!', 'success');
+    }
+
+    // === PERMISSIONS ===
+    async function togglePermission() {
+        const id = document.getElementById('perm-user-id').value;
+        const res = await apiRequest('PATCH', `/permission/?user_id=${id}`);
+        if (res.ok) showToast('Роль пользователя изменена!', 'success');
+    }
+
+    async function deleteUser() {
+        const id = document.getElementById('perm-del-id').value;
+        const res = await apiRequest('DELETE', `/permission/delete?user_id=${id}`);
+        if (res.ok) showToast('Статус пользователя изменён!', 'success');
+    }
+</script>
+
+</body>
+</html>

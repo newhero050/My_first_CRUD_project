@@ -1,16 +1,15 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select, update, delete
+from sqlalchemy import select, update
 from starlette import status
 from .auth import get_current_user
 from app.models.user import User
-from sqlalchemy.orm import Session
 from app.backend.db_depends import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models import User
 
-router = APIRouter(prefix='/premission', tags=['premissiom'])
+
+router = APIRouter(prefix='/permission', tags=['permission'])
 dbsession = Annotated[AsyncSession, Depends(get_db)]
 
 @router.patch('/')
@@ -38,6 +37,9 @@ async def supplier_permission(db: dbsession, get_user: Annotated[dict, Depends(g
 async def delete_user(db: dbsession, get_user: Annotated[dict, Depends(get_current_user)], user_id: int):
     if get_user.get('is_admin'):
         user = await db.scalar(select(User).where(User.id == user_id))
+        if User is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail='User not found')
         if user.is_admin:
            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="You can't delete admin user")
         if user.is_active:

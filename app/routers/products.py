@@ -59,7 +59,7 @@ async def product_detail(db: dbsession, product_slug: str):
     product = await db.scalar(
         select(Product).where(Product.slug == product_slug, Product.is_active == True, Product.stock > 0))
     if not product:
-        return HTTPException(
+        raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail='There are no product'
         )
