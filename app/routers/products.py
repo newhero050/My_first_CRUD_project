@@ -37,7 +37,7 @@ async def create_product(db: dbsession, new_product: CreateProduct, get_user: An
         return {"status_code": status.HTTP_201_CREATED,
                 'detail': 'Товар создан'}
     else:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='You are not authorized to use this method')
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='You are not authorized to use this method')
 
 
 @router.get('/{category_slug}')
@@ -91,7 +91,7 @@ async def update_product(db: dbsession, product_slug: str, update_product_model:
         else:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Невозможно изменить чужой товар')
     else:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail='You are not authorized to use this method')
 
 
@@ -114,5 +114,5 @@ async def delete_product(db: dbsession, product_id: int, get_user: Annotated[dic
         else:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Невозможно удалить чужой товар')
     else:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail='You are not authorized to use this method')

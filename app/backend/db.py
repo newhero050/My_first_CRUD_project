@@ -1,8 +1,9 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import DeclarativeBase
+from app.config import settings
 
-
-engine = create_async_engine('postgresql+asyncpg://ecommerce_adm:Loliklolik_1@localhost:5432/ecommerce_data', echo=True)
+engine = create_async_engine(settings.DATABASE_URL,
+                             echo=True)
 async_session_maker = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
 

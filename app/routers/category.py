@@ -25,7 +25,7 @@ async def create_category(db: Annotated[AsyncSession, Depends(get_db)],
             'transaction': 'Successful'
         }
     else:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='You must be admin user for this')
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='You must be admin user for this')
 
 @router.get('/all_categories')
 async def get_all_categories(db: Annotated[AsyncSession, Depends(get_db)]):
@@ -56,7 +56,7 @@ async def update_category(db: Annotated[AsyncSession, Depends(get_db)], category
         }
     else:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_403_FORBIDDEN,
             detail='You must be admin user for this'
         )
 
@@ -79,6 +79,6 @@ async def delete_category(db: Annotated[AsyncSession, Depends(get_db)], category
         }
     else:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_403_FORBIDDEN,
             detail='You must be admin user for this'
         )

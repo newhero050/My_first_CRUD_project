@@ -30,18 +30,18 @@ async def supplier_permission(db: dbsession, get_user: Annotated[dict, Depends(g
             return {'status_code': status.HTTP_200_OK,
                     'detail': 'User is now supplier'}
     else:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="You don't have admin permission")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You don't have admin permission")
 
 
 @router.delete('/delete')
 async def delete_user(db: dbsession, get_user: Annotated[dict, Depends(get_current_user)], user_id: int):
     if get_user.get('is_admin'):
         user = await db.scalar(select(User).where(User.id == user_id))
-        if User is None:
+        if user is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                 detail='User not found')
         if user.is_admin:
-           raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="You can't delete admin user")
+           raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can't delete admin user")
         if user.is_active:
             await db.execute(update(User).where(User.id == user_id).values(is_active=False))
             await db.commit()
@@ -53,4 +53,4 @@ async def delete_user(db: dbsession, get_user: Annotated[dict, Depends(get_curre
             return {'status_code': status.HTTP_200_OK,
                     'detail': 'User is activated'}
     else:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail= "You don't have admin permission")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail= "You don't have admin permission")

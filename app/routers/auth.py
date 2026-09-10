@@ -11,6 +11,7 @@ from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
+from app.config import settings
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
@@ -18,8 +19,8 @@ router = APIRouter(prefix='/auth', tags=['auth'])
 bcrypt_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 dbsession = Annotated[AsyncSession, Depends(get_db)]
 
-SECRET_KEY = 'eafa0efedb90d11ba2c2b7c78e0088e1155af41bbd7624a98c8ef2648b340a2b'
-ALGORITHM = 'HS256'
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = settings.ALGORITHM
 
 
 async def create_access_token(username: str, user_id: int, is_admin: bool,
@@ -33,7 +34,7 @@ async def create_access_token(username: str, user_id: int, is_admin: bool,
 
 @router.post('/token')
 async def login(db: dbsession, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
-    user = await authanticate_user(db, form_data.username, form_data.password)
+    user = await authenticate_user(db, form_data.username, form_data.password)
     if not user or user.is_active == False:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -42,7 +43,7 @@ async def login(db: dbsession, form_data: Annotated[OAuth2PasswordRequestForm, D
 
     token = await create_access_token(user.username, user.id, user.is_admin,
                                       user.is_supplier, user.is_customer,
-                                      expires_delta=timedelta(minutes=20))
+                                      expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
 
     return {
         'access_token': token,
@@ -63,7 +64,7 @@ async def create_user(db: dbsession, create_user: CreateUser):
     }
 
 
-async def authanticate_user(db: dbsession, username: str, password: str):
+async def authenticate_user(db: dbsession, username: str, password: str):
     user = await db.scalar(select(User).where(User.username == username))
     if not user or not bcrypt_context.verify(password, user.hashed_password) or user.is_active == False:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
