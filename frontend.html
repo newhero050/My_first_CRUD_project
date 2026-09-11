@@ -438,7 +438,7 @@
 
 <div class="base-url-bar">
     <label>🌐 Base URL:</label>
-    <input type="text" id="baseUrl" value="http://127.0.0.1:8000" />
+    <input type="text" id="baseUrl" value="http://127.0.0.1:8000/api/v1" />
 </div>
 
 <div class="container">
@@ -486,6 +486,9 @@
             </button>
             <button class="sidebar-btn" onclick="showPanel('prod-detail', this)">
                 <span class="method method-get">GET</span> Детали
+            </button>
+            <button class="sidebar-btn" onclick="showPanel('prod-detail-v2', this)">
+                <span class="method method-get" style="background:#8e44ad">v2</span> Детали + отзывы
             </button>
             <button class="sidebar-btn" onclick="showPanel('prod-update', this)">
                 <span class="method method-put">PUT</span> Изменить
@@ -717,6 +720,18 @@
                     <button class="btn-send" onclick="getProductDetail()">Показать детали</button>
                 </div>
 
+                <div class="endpoint-panel" id="panel-prod-detail-v2">
+                    <div class="endpoint-info">
+                        <span class="endpoint-method method-get" style="background:#8e44ad">GET v2</span>
+                        /api/v2/products/detail/{product_slug}
+                    </div>
+                    <div class="form-group">
+                        <label>Slug товара (v2: возвращает товар + отзывы)</label>
+                        <input type="text" id="prod-detail-v2-slug" placeholder="iphone-15">
+                    </div>
+                    <button class="btn-send" onclick="getProductDetailV2()">Показать детали и отзывы (v2)</button>
+                </div>
+
                 <div class="endpoint-panel" id="panel-prod-update">
                     <div class="endpoint-info">
                         <span class="endpoint-method method-put">PUT</span>
@@ -924,12 +939,23 @@
     }
 
     function getBase() {
-        return document.getElementById('baseUrl').value.replace(/\/+$/, '');
+        let base = document.getElementById('baseUrl').value.replace(/\/+$/, '');
+        // Если введено просто http://127.0.0.1:8000 без версии, автоматически подставляем /api/v1
+        if (!base.includes('/api/v')) {
+            base += '/api/v1';
+        }
+        return base;
     }
 
     // === API Request Helper ===
     async function apiRequest(method, path, body = null, useForm = false) {
-        const url = getBase() + path;
+        let url;
+        if (path.startsWith('/api/')) {
+            const root = getBase().replace(/\/api\/v\d+.*$/, '');
+            url = root + path;
+        } else {
+            url = getBase() + path;
+        }
         const headers = {};
         if (token) headers['Authorization'] = 'Bearer ' + token;
 
@@ -1067,6 +1093,11 @@
     async function getProductDetail() {
         const slug = document.getElementById('prod-detail-slug').value;
         await apiRequest('GET', `/products/detail/${slug}`);
+    }
+
+    async function getProductDetailV2() {
+        const slug = document.getElementById('prod-detail-v2-slug').value;
+        await apiRequest('GET', `/api/v2/products/detail/${slug}`);
     }
 
     async function updateProduct() {

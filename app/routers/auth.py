@@ -1,6 +1,6 @@
-from fastapi import APIRouter, status, HTTPException, Depends
+from fastapi import APIRouter, status, HTTPException, Depends, BackgroundTasks
 from sqlalchemy import select, insert
-
+from loguru import logger
 from app.models.user import User
 from app.schemas import CreateUser
 from app.backend.db_depends import get_db
@@ -12,7 +12,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
 from app.config import settings
-
+import time
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
 router = APIRouter(prefix='/auth', tags=['auth'])
@@ -50,14 +50,19 @@ async def login(db: dbsession, form_data: Annotated[OAuth2PasswordRequestForm, D
         'token_type': 'bearer'
     }
 
+def send_welcome_email(email: str, username: str):
+    time.sleep(3)
+    logger.info(f'Приветственное письмо успешно отправлено пользователю {username} на адрес {email}')
+
 @router.post('/')
-async def create_user(db: dbsession, create_user: CreateUser):
+async def create_user(bg_tasks: BackgroundTasks, db: dbsession, create_user: CreateUser):
     await db.execute(insert(User).values(first_name=create_user.first_name,
                                          last_name=create_user.last_name,
                                          username=create_user.username,
                                          email=create_user.email,
                                          hashed_password=bcrypt_context.hash(create_user.password)))
     await db.commit()
+    bg_tasks.add_task(send_welcome_email, email=create_user.email, username=create_user.username)
     return {
         'status_code': status.HTTP_201_CREATED,
         'transaction': 'Successful'
@@ -103,3 +108,5 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
 @router.get('/read_current_user')
 async def read_current_user(user: User = Depends(get_current_user)):
     return {'User': user}
+
+

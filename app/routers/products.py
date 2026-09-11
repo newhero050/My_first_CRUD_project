@@ -6,13 +6,14 @@ from app.schemas import CreateProduct
 from sqlalchemy import select, insert, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
-from app.models import Product
+from app.models import Product, Review
 from app.models import Category
 from app.routers.auth import get_current_user
 
 
 
 router = APIRouter(prefix='/products', tags=['products'])
+router_v2 = APIRouter(prefix='/products', tags=['products'])
 dbsession = Annotated[AsyncSession, Depends(get_db)]
 
 @router.get('/')
@@ -116,3 +117,17 @@ async def delete_product(db: dbsession, product_id: int, get_user: Annotated[dic
     else:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail='You are not authorized to use this method')
+
+
+
+@router_v2.get('/detail/{product_slug}')
+async def product_detail(db: dbsession, product_slug: str):
+    product = await db.scalar(select(Product).where(Product.slug == product_slug,
+                                              Product.stock > 0, Product.is_active == True))
+    if product is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Product not found')
+
+    reviews_query = await db.scalars(select(Review).where(Review.product_id == product.id,
+                                                   Review.is_active == True))
+    reviews = reviews_query.all()
+    return {"product_details": product, 'product_reviews': reviews}
