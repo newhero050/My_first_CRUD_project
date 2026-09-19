@@ -16,3 +16,6 @@ __pycache__/
 
 # Папка с логами
 logs/
+
+# Сертификаты Let's Encrypt
+certbot/
