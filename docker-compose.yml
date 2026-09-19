@@ -1,0 +1,57 @@
+services:
+  # 1. Сервис базы данных PostgreSQL
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # 2. Сервис очереди и кэша Redis
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  # 3. Сервис нашего FastAPI приложения
+  web:
+    build: .
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+
+  # 4. Сервис фонового воркера Celery
+  celery:
+    build: .
+    restart: always
+    command: celery -A app.celery_app worker --loglevel=info
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+
+  nginx:
+    build: ./nginx
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - web
+
+
+# Объявляем постоянные тома для сохранения данных на диске
+volumes:
+  postgres_data:
+  redis_data:

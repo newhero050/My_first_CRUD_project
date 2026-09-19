@@ -14,7 +14,7 @@ from jose import jwt, JWTError
 from app.config import settings
 import time
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
 router = APIRouter(prefix='/auth', tags=['auth'])
 bcrypt_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 dbsession = Annotated[AsyncSession, Depends(get_db)]

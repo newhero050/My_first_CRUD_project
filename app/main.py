@@ -7,6 +7,8 @@ from app.routers import v1_routers, v2_routers
 from time import perf_counter, process_time
 
 app = FastAPI()
+app.include_router(v1_routers)
+app.include_router(v2_routers)
 
 # Разрешаем браузеру делать запросы к нашему API
 app.add_middleware(

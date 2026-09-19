@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 20
 
+    # redis
+    REDIS_URL: str
+
     @property
     def DATABASE_URL(self) -> str:
         """Динамическая сборка асинхронный URL для SQLAlchemy"""
